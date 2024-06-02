@@ -1,0 +1,25 @@
+docker {
+  javaApplication {
+    baseImage = 'openjdk:latest'
+    tag = 'java-app:gradle'
+  }
+}
+
+task createContainer(type: DockerCreateContainer) {
+    dependsOn dockerBuildImage    
+    targetImageId { dockerBuildImage.getImageId() }
+}
+
+task startContainer(type: DockerStartContainer) {    
+    dependsOn createContainer 
+    targetContainerId { createContainer.getContainerId() }
+}
+
+task logContainer(type: DockerLogsContainer, dependsOn: startContainer) {
+    targetContainerId { startContainer.getContainerId() }
+    follow = true
+    tailAll = true
+    onNext {
+        message -> logger.quiet message.toString() 
+    }
+}
